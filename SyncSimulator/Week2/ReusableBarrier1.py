@@ -7,14 +7,13 @@ turnStile1 = MySemaphore(0, "turnStile1")
 turnStile2 = MySemaphore(1, "turnStile2")
 sem = MySemaphore(0, "semCount")
 
-count = MyInt(0, "count")
-
 
 def ThreadN():
     mutex.wait()
     sem.signal()
     if sem.get_value() == N:
-        turnStile1.signal(N)
+        turnStile2.wait()
+        turnStile1.signal()
 
     mutex.signal()
 
@@ -26,7 +25,8 @@ def ThreadN():
     mutex.wait()
     sem.wait()
     if sem.get_value() == 0:
-        turnStile2.signal(N)
+        turnStile1.wait()
+        turnStile2.signal()
 
     mutex.signal()
 
