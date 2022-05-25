@@ -19,7 +19,7 @@ def ThreadN():
     mutex.signal()
 
     turnStile1.wait()
-    turnStile1.signal()
+    # turnStile1.signal()
 
     print("Critical Section!!")
 
@@ -31,7 +31,7 @@ def ThreadN():
     mutex.signal()
 
     turnStile2.wait()
-    turnStile2.signal()
+    # turnStile2.signal()
     print("Out from turnstile")
 
 

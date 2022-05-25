@@ -14,7 +14,6 @@ def leadersThread():
 
         followerRendezvous.signal()
         leaderRendezvous.wait()
-        print("one leader with one follower ")
 
         leaderPipet.signal()
 
@@ -25,7 +24,6 @@ def followersThread():
 
         leaderRendezvous.signal()
         followerRendezvous.wait()
-        print("one follower with one leader")
 
         followerPipet.signal()
 

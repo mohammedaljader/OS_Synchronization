@@ -1,40 +1,114 @@
 from Environment import *
 
-N = 5
-
-mutex = MyMutex(1)
-turnStile1 = MySemaphore(0, "turnStile1")
-turnStile2 = MySemaphore(1, "turnStile2")
-sem = MySemaphore(0, "semCount")
+semaphore1 = MySemaphore(0, "semaphore1")
+semaphore2 = MySemaphore(0, "semaphore2")
+semaphore3 = MySemaphore(0, "semaphore3")
+semaphore4 = MySemaphore(0, "semaphore4")
 
 
-def ThreadN():
-    mutex.wait()
-    sem.signal()
-    if sem.get_value() == N:
-        turnStile2.wait()
-        turnStile1.signal()
+def ThreadA():
+    semaphore1.signal()
+    semaphore2.signal()
+    semaphore3.signal()
+    semaphore4.signal()
 
-    mutex.signal()
+    semaphore1.wait()
+    semaphore1.wait()
+    semaphore1.wait()
+    semaphore1.wait()
 
-    turnStile1.wait()
-    turnStile1.signal()
+    print("Critical Section!")
 
-    print("Critical Section!!")
+    semaphore1.signal()
+    semaphore2.signal()
+    semaphore3.signal()
+    semaphore4.signal()
 
-    mutex.wait()
-    sem.wait()
-    if sem.get_value() == 0:
-        turnStile1.wait()
-        turnStile2.signal()
+    semaphore1.wait()
+    semaphore1.wait()
+    semaphore1.wait()
+    semaphore1.wait()
+    print("Out!")
 
-    mutex.signal()
 
-    turnStile2.wait()
-    turnStile2.signal()
-    print("Out from turnstile")
+def ThreadB():
+    semaphore1.signal()
+    semaphore2.signal()
+    semaphore3.signal()
+    semaphore4.signal()
+
+    semaphore2.wait()
+    semaphore2.wait()
+    semaphore2.wait()
+    semaphore2.wait()
+
+    print("Critical Section!")
+
+    semaphore1.signal()
+    semaphore2.signal()
+    semaphore3.signal()
+    semaphore4.signal()
+
+    semaphore2.wait()
+    semaphore2.wait()
+    semaphore2.wait()
+    semaphore2.wait()
+    print("Out!")
+
+
+def ThreadC():
+    semaphore1.signal()
+    semaphore2.signal()
+    semaphore3.signal()
+    semaphore4.signal()
+
+    semaphore3.wait()
+    semaphore3.wait()
+    semaphore3.wait()
+    semaphore3.wait()
+
+    print("Critical Section!")
+
+    semaphore1.signal()
+    semaphore2.signal()
+    semaphore3.signal()
+    semaphore4.signal()
+
+    semaphore3.wait()
+    semaphore3.wait()
+    semaphore3.wait()
+    semaphore3.wait()
+    print("Out!")
+
+
+def ThreadD():
+    semaphore1.signal()
+    semaphore2.signal()
+    semaphore3.signal()
+    semaphore4.signal()
+
+    semaphore4.wait()
+    semaphore4.wait()
+    semaphore4.wait()
+    semaphore4.wait()
+
+    print("Critical Section!")
+
+    semaphore1.signal()
+    semaphore2.signal()
+    semaphore3.signal()
+    semaphore4.signal()
+
+    semaphore4.wait()
+    semaphore4.wait()
+    semaphore4.wait()
+    semaphore4.wait()
+
+    print("Out!")
 
 
 def setup():
-    for i in range(N):
-        subscribe_thread(ThreadN)
+    subscribe_thread(ThreadA)
+    subscribe_thread(ThreadB)
+    subscribe_thread(ThreadC)
+    subscribe_thread(ThreadD)
