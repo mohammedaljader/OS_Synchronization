@@ -1,7 +1,6 @@
 from Environment import *
 
 N = 4
-
 leaderPipet = MyMutex("leaderPipet")
 followerPipet = MyMutex("followerPipet")
 leaderRendezvous = MySemaphore(0, "leaderRendezvous")
@@ -14,6 +13,7 @@ def leadersThread():
 
         followerRendezvous.signal()
         leaderRendezvous.wait()
+        print("Dance")
 
         leaderPipet.signal()
 
@@ -24,6 +24,7 @@ def followersThread():
 
         leaderRendezvous.signal()
         followerRendezvous.wait()
+        print("Dance")
 
         followerPipet.signal()
 
