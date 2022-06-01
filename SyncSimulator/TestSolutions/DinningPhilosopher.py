@@ -2,6 +2,7 @@
 from Environment import *
 
 forks = [MySemaphore(1, f"Sem{i}") for i in range(5)]
+footman = MySemaphore(1, "footman")
 
 
 def left(i):
@@ -12,32 +13,18 @@ def right(i):
     return (i + 1) % 5
 
 
-def think(i):
-    print(f"{i} is thinking!")
-
-
-def eat(i):
-    print(f"{i} is eating!")
-
-
 def get_fork(i):
     while True:
-        think(i)
-        forks[left(i)].wait()
+        footman.wait()
         forks[right(i)].wait()
-        eat(i)
-        forks[left(i)].signal()
-        forks[right(i)].signal()
+        forks[left(i)].wait()
 
 
 def put_fork(i):
     while True:
-        think(i)
-        forks[right(i)].wait()
-        forks[left(i)].wait()
-        eat(i)
         forks[right(i)].signal()
         forks[left(i)].signal()
+        footman.signal()
 
 
 def setup():
