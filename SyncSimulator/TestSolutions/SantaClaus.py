@@ -34,49 +34,50 @@ mutex = MyMutex("mutex")
 
 
 def Santa():
-    santaSem.wait()
-    mutex.wait()
-    if reindeer.v >= 9:
-        print("prepareSleigh")
-        reindeerSem.signal(9)
-        reindeer.v -= 9
-    else:
-        print("helpElves")
+    while True:
+        santaSem.wait()
+        mutex.wait()
+        if reindeer.v >= 9:
+            print("prepareSleigh")
+            reindeerSem.signal(9)
+            reindeer.v -= 9
+        else:
+            print("helpElves")
 
-    mutex.signal()
+        mutex.signal()
 
 
 def Reindeer():
-    mutex.wait()
-    reindeer.v += 1
-    if reindeer.v == 9:
-        santaSem.signal()
-    mutex.signal()
+    while True:
+        mutex.wait()
+        reindeer.v += 1
+        if reindeer.v == 9:
+            santaSem.signal()
+        mutex.signal()
 
-    reindeerSem.wait()
-    print("getHitched")
+        reindeerSem.wait()
+        print("getHitched")
 
 
 def Elves():
-    elfTex.wait()
-    mutex.wait()
-    elves.v += 1
-    if elves.v == 3:
-        santaSem.signal()
-    else:
-        elfTex.signal()
-    mutex.signal()
-    print("getHelp")
-    mutex.wait()
-    elves.v -= 1
-    if elves.v == 0:
-        elfTex.signal()
-    mutex.signal()
+    while True:
+        elfTex.wait()
+        mutex.wait()
+        elves.v += 1
+        if elves.v == 3:
+            santaSem.signal()
+        else:
+            elfTex.signal()
+        mutex.signal()
+        print("getHelp")
+        mutex.wait()
+        elves.v -= 1
+        if elves.v == 0:
+            elfTex.signal()
+        mutex.signal()
 
 
 def setup():
     subscribe_thread(Santa)
     subscribe_thread(Reindeer)
     subscribe_thread(Elves)
-
-

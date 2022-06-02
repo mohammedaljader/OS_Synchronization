@@ -5,30 +5,30 @@ hackerSem = MySemaphore(0, "hackerSemaphore")
 barrier = MyBarrier(4, "barrier")
 Multiplex = MySemaphore(5, "multiplex")
 passengersMutex = MyMutex("passengersMutex")
-mutex = MyMutex("SMutex")
+mutex = MyMutex("mutex")
 serfs = MyInt(0, "SerfCounter")
 hackers = MyInt(0, "HackerCounter")
 passengers = MyInt(0, "PassengerCount")
 
 
-def RiverCrossingThread(me, other, meSem, otherSem, meName):
+def RiverCrossingThread(me, other):
     while True:
         Multiplex.wait()
         mutex.wait()
 
-        me.v += 1
-        if me.v == 4:
-            meSem.signal(4)
-            me.v = 0
-        elif me.v >= 2 and other.v >= 2:
-            meSem.signal(2)
-            otherSem.signal(2)
-            me.v -= 2
-            other.v -= 2
+        me.counter += 1
+        if me == 4:
+            me.sem.signal(4)
+            me = 0
+        elif me.counter >= 2 and other.counter >= 2:
+            me.sem.signal(2)
+            other.sem.signal(2)
+            me.counter -= 2
+            other.counter -= 2
 
         mutex.signal()
-        meSem.wait()
-        print(f"Board {meName}")
+        me.sem.wait()
+        print(f"Board {me.name}")
 
         passengersMutex.wait()
         passengers.v += 1
@@ -41,7 +41,18 @@ def RiverCrossingThread(me, other, meSem, otherSem, meName):
         Multiplex.signal()
 
 
+class Person:
+    def __init__(self, counter, sem, name):
+        self.counter = counter
+        self.sem = sem
+        self.name = name
+
+
+serfsClass = Person(serfs.v, serfSem, "serfs")
+hackersClass = Person(hackers.v, hackerSem, "hackers")
+
+
 def setup():
     for i in range(7):
-        subscribe_thread(lambda: RiverCrossingThread(serfs, hackers, serfSem, hackerSem, "Serfs"))
-        subscribe_thread(lambda: RiverCrossingThread(hackers, serfs, hackerSem, serfSem, "Hackers"))
+        subscribe_thread(lambda: RiverCrossingThread(serfsClass, hackersClass))
+        subscribe_thread(lambda: RiverCrossingThread(hackersClass, serfsClass))
