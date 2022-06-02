@@ -1,14 +1,17 @@
 from Environment import *
+
 santaSem = MySemaphore(0, "santaSem")
-needHelpBarrier = MySemaphore(0, "needHelpQueue")
-helpedBarrier = MySemaphore(0, "helpedQueue")
+needHelpBarrier = MySemaphore(0, "needHelpBarrier")
+helpedBarrier = MySemaphore(0, "helpedBarrier")
 doneHelping = MySemaphore(0, "doneHelping")
-reindeerBarrier = MySemaphore(0, "reindeerQueue")
+reindeerBarrier = MySemaphore(0, "reindeerBarrier")
 elfTurnstile = MySemaphore(1, "elfTurnstile")
 mutex = MyMutex("mutex")
 elfMutex = MyMutex("elfMutex")
 reindeer = MyInt(0, "reindeer")
 elves = MyInt(0, "elves")
+
+
 def santa():
     while True:
         santaSem.wait()
@@ -24,6 +27,8 @@ def santa():
             reindeer.v -= 9
             elfTurnstile.signal()
         mutex.signal()
+
+
 def elf():
     while True:
         elfTurnstile.wait()
@@ -41,6 +46,8 @@ def elf():
             doneHelping.signal()
         elfMutex.signal()
         helpedBarrier.wait()
+
+
 def Reindeer():
     while True:
         mutex.wait()
@@ -51,7 +58,6 @@ def Reindeer():
         mutex.signal()
         reindeerBarrier.wait()
         print("getHitched()")
-
 
 
 def setup():
