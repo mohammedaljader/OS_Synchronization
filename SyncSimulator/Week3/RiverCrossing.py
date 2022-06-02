@@ -2,71 +2,40 @@ from Environment import *
 
 serfSem = MySemaphore(0, "serfSemaphore")
 hackerSem = MySemaphore(0, "hackerSemaphore")
-barrier = MyBarrier(4, "boatBarrier")
-Multiplex = MySemaphore(5, "Multiplex")
-boatMutex = MyMutex("boatMutex")
-SMutex = MyMutex("SMutex")
-HMutex = MyMutex("HMutex")
+barrier = MyBarrier(4, "barrier")
+Multiplex = MySemaphore(5, "multiplex")
+passengersMutex = MyMutex("passengersMutex")
+mutex = MyMutex("SMutex")
 serfs = MyInt(0, "SerfCounter")
 hackers = MyInt(0, "HackerCounter")
 passengers = MyInt(0, "PassengerCount")
 
 
-def SerfsThread():
+def RiverCrossingThread(me, other, meSem, otherSem, meName):
     while True:
         Multiplex.wait()
-        SMutex.wait()
+        mutex.wait()
 
-        serfs.v += 1
-        if serfs.v == 4:
-            serfSem.signal(4)
-            serfs.v = 0
-        elif serfs.v >= 2 and hackers.v >= 2:
-            serfSem.signal(2)
-            hackerSem.signal(2)
-            serfs.v -= 2
-            hackers.v -= 2
+        me.v += 1
+        if me.v == 4:
+            meSem.signal(4)
+            me.v = 0
+        elif me.v >= 2 and other.v >= 2:
+            meSem.signal(2)
+            otherSem.signal(2)
+            me.v -= 2
+            other.v -= 2
 
-        SMutex.signal()
-        serfSem.wait()
-        print("Board Serf")
+        mutex.signal()
+        meSem.wait()
+        print(f"Board {meName}")
 
-        boatMutex.wait()
+        passengersMutex.wait()
         passengers.v += 1
         if passengers.v == 4:
             print("rowBoat")
             passengers.v = 0
-        boatMutex.signal()
-
-        barrier.wait()
-        Multiplex.signal()
-
-
-def HackersThread():
-    while True:
-        Multiplex.wait()
-        HMutex.wait()
-
-        hackers.v += 1
-        if hackers.v == 4:
-            hackerSem.signal(4)
-            hackers.v = 0
-        elif hackers.v >= 2 and serfs.v >= 2:
-            hackerSem.signal(2)
-            serfSem.signal(2)
-            hackers.v -= 2
-            serfs.v -= 2
-
-        HMutex.signal()
-        hackerSem.wait()
-        print("Board Hacker")
-
-        boatMutex.wait()
-        passengers.v += 1
-        if passengers.v == 4:
-            print("rowBoat")
-            passengers.v = 0
-        boatMutex.signal()
+        passengersMutex.signal()
 
         barrier.wait()
         Multiplex.signal()
@@ -74,7 +43,5 @@ def HackersThread():
 
 def setup():
     for i in range(7):
-        subscribe_thread(SerfsThread)
-
-    for i in range(7):
-        subscribe_thread(HackersThread)
+        subscribe_thread(lambda: RiverCrossingThread(serfs, hackers, serfSem, hackerSem, "Serfs"))
+        subscribe_thread(lambda: RiverCrossingThread(hackers, serfs, hackerSem, serfSem, "Hackers"))
