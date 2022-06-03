@@ -4,12 +4,11 @@ N = 7
 
 elves = MyInt(0, "elves")
 reindeer = MyInt(0, "reindeer")
-
 santaSem = MySemaphore(0, "SantaSemaphore")
 reindeerSem = MySemaphore(0, "ReindeerSemaphore")
 elvesSem = MySemaphore(0, "elvesSem")
-
-mutex = MySemaphore(1, "mutex")
+ElfMutex = MyMutex("ElfMutex")
+ReindeerMutex = MyMutex("ReindeerMutex")
 
 
 def santa():
@@ -17,35 +16,34 @@ def santa():
         santaSem.wait()
         if elves.v >= 3:
             print("helpElves()")
+            elves.v -= 3
             elvesSem.signal()
         elif reindeer.v == 9:
             print("prepareSleigh()")
+            reindeer.v -= 9
             reindeerSem.signal()
 
 
 def elf():
     while True:
-        mutex.wait()
+        ElfMutex.wait()
         elves.v += 1
         if elves.v >= 3:
             santaSem.signal()
             elvesSem.wait()
             print("getHelp()")
-            elves.v -= 3
-        mutex.signal()
+        ElfMutex.signal()
 
 
-def reindeer():
+def Reindeer():
     while True:
+        ReindeerMutex.wait()
+        reindeer.v += 1
         if reindeer.v == 9:
             santaSem.signal()
             reindeerSem.wait()
             print("getHitched()")
-            reindeer.v = 0
-        mutex.wait()
-        if reindeer.v < 9:
-            reindeer.v += 1
-        mutex.signal()
+        ReindeerMutex.signal()
 
 
 def setup():
@@ -53,4 +51,4 @@ def setup():
     for i in range(N):
         subscribe_thread(elf)
     for i in range(N):
-        subscribe_thread(reindeer)
+        subscribe_thread(Reindeer)
