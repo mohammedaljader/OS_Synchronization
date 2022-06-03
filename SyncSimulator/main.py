@@ -7,13 +7,13 @@ import sys
 # dut_dir = "./Week1/"
 # dut_dir = "./TestSolutions/"
 # dut_dir = "./Week2/"
-dut_dir = "./Week3/"
+dut_dir = "./TestSolutions/"
 
 
 # 'myDut': Device Under Test, a python file with '.py' must exist in 'dut_dir'
 # myDut = "Dut_ConditionVariable"
 # myDut = "Dut37_ReusableBarrier_SemOnly"
-myDut = "SantaClaus"
+myDut = "SantaClaus2"
 # myDut = "Dut44_5_DiningPhilosophers_Tanenbaum"
 # myDut = "Dut44_DiningPhilosophers_CondVar"
 # myDut = "Dut42_ReaderWriter_CondVar"
