@@ -1,9 +1,10 @@
+# H2O
 from Environment import *
 
 N = 7
 
-hPipet = MySemaphore(2, "hPipet")
-oPipet = MySemaphore(1, "oPipet")
+hPipet = MyMutex("hPipet")
+oPipet = MyMutex("oPipet")
 hTurnstile = MySemaphore(0, "hTurnstile")
 oTurnstile = MySemaphore(0, "oTurnstile")
 

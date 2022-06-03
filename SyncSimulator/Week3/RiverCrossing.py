@@ -1,9 +1,10 @@
+# River Crossing
 from Environment import *
 
 serfSem = MySemaphore(0, "serfSemaphore")
 hackerSem = MySemaphore(0, "hackerSemaphore")
-barrier = MyBarrier(4, "barrier")
-Multiplex = MySemaphore(5, "multiplex")
+barrier = MyBarrier(4, "barrier")   # Barrier added to make sure that all passengers go at the same time
+Multiplex = MySemaphore(5, "multiplex")  # multiplex added to make sure that only one boat can go
 passengersMutex = MyMutex("passengersMutex")
 mutex = MyMutex("mutex")
 serfs = MyInt(0, "SerfCounter")
@@ -19,7 +20,7 @@ def RiverCrossingThread(me, other):
         me.counter += 1
         if me == 4:
             me.sem.signal(4)
-            me = 0
+            me.counter = 0
         elif me.counter >= 2 and other.counter >= 2:
             me.sem.signal(2)
             other.sem.signal(2)
