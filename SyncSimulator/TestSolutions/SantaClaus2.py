@@ -1,7 +1,5 @@
 from Environment import *
 
-N = 7
-
 elves = MyInt(0, "elves")
 reindeer = MyInt(0, "reindeer")
 santaSem = MySemaphore(0, "SantaSemaphore")
@@ -9,11 +7,13 @@ reindeerSem = MySemaphore(0, "ReindeerSemaphore")
 elvesSem = MySemaphore(0, "elvesSem")
 ElfMutex = MyMutex("ElfMutex")
 ReindeerMutex = MyMutex("ReindeerMutex")
+SantaMutex = MyMutex("SantaMutex")
 
 
 def santa():
     while True:
         santaSem.wait()
+        SantaMutex.wait()
         if elves.v >= 3:
             print("helpElves()")
             elves.v -= 3
@@ -22,6 +22,7 @@ def santa():
             print("prepareSleigh()")
             reindeer.v -= 9
             reindeerSem.signal()
+        SantaMutex.signal()
 
 
 def elf():
@@ -48,7 +49,7 @@ def Reindeer():
 
 def setup():
     subscribe_thread(santa)
-    for i in range(N):
+    subscribe_thread(Reindeer)
+    for i in range(7):
         subscribe_thread(elf)
-    for i in range(N):
-        subscribe_thread(Reindeer)
+
