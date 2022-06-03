@@ -1,68 +1,54 @@
 from Environment import *
 
-santaSem = MySemaphore(0, "santaSem")
-needHelpBarrier = MySemaphore(0, "needHelpBarrier")
-helpedBarrier = MySemaphore(0, "helpedBarrier")
-doneHelping = MySemaphore(0, "doneHelping")
-reindeerBarrier = MySemaphore(0, "reindeerBarrier")
-elfTurnstile = MySemaphore(1, "elfTurnstile")
-mutex = MyMutex("mutex")
-elfMutex = MyMutex("elfMutex")
-reindeer = MyInt(0, "reindeer")
 elves = MyInt(0, "elves")
+reindeer = MyInt(0, "reindeer")
+santaSem = MySemaphore(0, "SantaSemaphore")
+reindeerSem = MySemaphore(0, "ReindeerSemaphore")
+elvesSem = MySemaphore(0, "elvesSem")
+ElfMutex = MyMutex("ElfMutex")
+ReindeerMutex = MyMutex("ReindeerMutex")
+SantaMutex = MyMutex("SantaMutex")
 
 
 def santa():
     while True:
         santaSem.wait()
-        mutex.wait()
+        SantaMutex.wait()
         if elves.v >= 3:
-            needHelpBarrier.signal(elves.v)
             print("helpElves()")
-            doneHelping.wait()
-            helpedBarrier.signal(elves.v)
+            elves.v -= 3
+            elvesSem.signal()
         elif reindeer.v == 9:
             print("prepareSleigh()")
-            reindeerBarrier.signal(9)
             reindeer.v -= 9
-            elfTurnstile.signal()
-        mutex.signal()
+            reindeerSem.signal()
+        SantaMutex.signal()
 
 
 def elf():
     while True:
-        elfTurnstile.wait()
-        elfTurnstile.signal()
-        mutex.wait()
+        ElfMutex.wait()
         elves.v += 1
-        if elves.v == 3:
+        if elves.v >= 3:
             santaSem.signal()
-        mutex.signal()
-        needHelpBarrier.wait()
-        print("getHelp()")
-        elfMutex.wait()
-        elves.v -= 1
-        if elves.v == 0:
-            doneHelping.signal()
-        elfMutex.signal()
-        helpedBarrier.wait()
+            elvesSem.wait()
+            print("getHelp()")
+        ElfMutex.signal()
 
 
 def Reindeer():
     while True:
-        mutex.wait()
+        ReindeerMutex.wait()
         reindeer.v += 1
         if reindeer.v == 9:
-            elfTurnstile.wait()
             santaSem.signal()
-        mutex.signal()
-        reindeerBarrier.wait()
-        print("getHitched()")
+            reindeerSem.wait()
+            print("getHitched()")
+        ReindeerMutex.signal()
 
 
 def setup():
     subscribe_thread(santa)
-    for i in range(9):
+    subscribe_thread(Reindeer)
+    for i in range(7):
         subscribe_thread(elf)
-    for i in range(8):
-        subscribe_thread(Reindeer)
