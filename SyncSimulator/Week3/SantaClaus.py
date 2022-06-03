@@ -62,5 +62,7 @@ def Reindeer():
 
 def setup():
     subscribe_thread(santa)
-    subscribe_thread(elf)
-    subscribe_thread(Reindeer)
+    for i in range(9):
+        subscribe_thread(elf)
+    for i in range(8):
+        subscribe_thread(Reindeer)
