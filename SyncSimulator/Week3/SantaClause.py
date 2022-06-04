@@ -17,12 +17,12 @@ def santa():
         SantaMutex.wait()
         if elves.v >= 3:
             print("helpElves()")
-            elves.v -= 0
             elvesSem.signal(elves.v)
+            elves.v = 0
         elif reindeer.v == 9:
             print("prepareSleigh()")
-            reindeer.v -= 0
             reindeerSem.signal(9)
+            reindeer.v = 0
         SantaMutex.signal()
 
 
@@ -53,4 +53,4 @@ def setup():
     for i in range(7):
         subscribe_thread(elf)
     for i in range(9):
-        subscribe_thread(reindeer)
+        subscribe_thread(Reindeer)
