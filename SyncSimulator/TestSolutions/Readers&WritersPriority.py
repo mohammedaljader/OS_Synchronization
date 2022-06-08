@@ -3,8 +3,8 @@ from Environment import *
 
 noReaders = MySemaphore(1, "NoReaders")
 noWriters = MySemaphore(1, "NoWriters")
-readSwitch = MyLightswitch(noWriters)
-writerSwitch = MyLightswitch(noReaders)
+readSwitch = MyLightswitch(noWriters, "readSwitch")
+writerSwitch = MyLightswitch(noReaders, "writerSwitch")
 
 
 def Writer():
