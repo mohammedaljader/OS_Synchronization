@@ -14,7 +14,7 @@ dut_dir = "Week4/"
 # 'myDut': Device Under Test, a python file with '.py' must exist in 'dut_dir'
 # myDut = "Dut_ConditionVariable"
 # myDut = "Dut37_ReusableBarrier_SemOnly"
-myDut = "Reader&Writer"
+myDut = "DinningSavages"
 # myDut = "Dut44_5_DiningPhilosophers_Tanenbaum"
 # myDut = "Dut44_DiningPhilosophers_CondVar"
 # myDut = "Dut42_ReaderWriter_CondVar"
