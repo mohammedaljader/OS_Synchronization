@@ -4,9 +4,10 @@ from Environment import *
 def reader_thread():
     while True:
         mutex.wait()
-        while active_writers.v > 0 or waiting_writers.v > 0:  # check if safe to read if any writers, wait
+        while (active_writers.v > 0 or waiting_writers.v > 0) and hasPriority.v:  # check if safe to read if any writers, wait
             waiting_readers.v += 1
             cv_reader.wait()
+            hasPriority.v = False
             waiting_readers.v -= 1
         active_readers.v += 1
         mutex.signal()
@@ -23,9 +24,11 @@ def reader_thread():
 def writer_thread():
     while True:
         mutex.wait()
-        while active_writers.v > 0 or active_readers.v > 0:  # check if safe to write, if any readers or writers,wait
+        while (
+                active_writers.v > 0 or active_readers.v > 0) and hasPriority.v:  # check if safe to write, if any readers or writers,wait
             waiting_writers.v += 1
             cv_writer.wait()
+            hasPriority.v = True
             waiting_writers.v -= 1
         active_writers.v += 1
         mutex.signal()
@@ -48,6 +51,7 @@ active_readers = MyInt(0, "active_readers")
 active_writers = MyInt(0, "active_writers")
 waiting_readers = MyInt(0, "waiting_readers")
 waiting_writers = MyInt(0, "waiting_writers")
+hasPriority = MyBool(False, "hasPriority")
 
 
 def setup():
