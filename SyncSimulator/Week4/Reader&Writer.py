@@ -15,9 +15,9 @@ def reader_thread():
 
         mutex.wait()
         active_readers.v -= 1
-        if active_readers.v == 0 and (
-                (priority.v and waiting_writers.v > 0) or (waiting_writers.v > 0 and waiting_readers.v == 0)):
-            cv_writer.notify()
+        if active_readers.v == 0:
+            if (priority.v and waiting_writers.v > 0) or (waiting_writers.v > 0 and waiting_readers.v == 0):
+                cv_writer.notify()
         mutex.signal()
 
 
@@ -58,7 +58,6 @@ def setup():
     for i in range(7):
         subscribe_thread(writer_thread)
 
-
 # While and if statement
 
 # if a = 72  -> 1
@@ -70,4 +69,3 @@ def setup():
 
 # while not(a == 72)
 #      cv.wait()
-
