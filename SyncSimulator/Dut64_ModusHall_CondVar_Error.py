@@ -11,14 +11,14 @@ def threadPerson(me, other):
             me.cv.wait()
         state.v = me.state_walk
         
-        me.count.v += 1
+        me.activeBaboons.v += 1
         mutex.signal()
 
         # CS
         
         mutex.wait()
-        me.count.v -= 1
-        if me.count.v == 0:
+        me.activeBaboons.v -= 1
+        if me.activeBaboons.v == 0:
             state.v = "NEUTRAL"
             other.cv.notify_all()
         mutex.signal()
