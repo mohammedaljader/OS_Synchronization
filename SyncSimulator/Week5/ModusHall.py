@@ -1,78 +1,92 @@
 from Environment import *
 
 
-def thread_person(me, other):
+def person_thread(me, other):
     while True:
         mutex.wait()
 
-        me.queue.v += 1
-        # If the current state is not in this group`s favor or is Neutral, add person to queue
-        while state.v not in (me.rule, States.NEUTRAL):
-            me.cvar.wait()
+        me.buffer_counter.v += 1
 
-        me.queue.v -= 1
-        me.count.v += 1
+        while state.v == other.transition:
+            me.buffer_cv.wait()
 
-        if state.v == States.NEUTRAL:  # Take hold of the field if the state is Neutral
+        me.buffer_counter.v -= 1
+
+        me.queue_counter.v += 1
+
+        if state.v == States.NEUTRAL:
             state.v = me.rule
-            # If the current group currently controls the field, but the queue for the other group becomes larger
-        # Change to Transition state in favor of the other group
-        elif state.v == me.rule and other.queue.v > me.queue.v:
-            state.v = other.transition
+
+        elif state.v == other.rule and me.queue_counter.v > other.queue_counter.v:
+            state.v = me.transition
+
+        while state.v == other.rule or state.v == me.transition:
+            me.queue_cv.wait()
 
         mutex.signal()
 
-        # Critical section - Crossing the field
+        print("walking field...")
 
         mutex.wait()
-        me.count.v -= 1
 
-        if me.count.v == 0:  # Last person to leave the field of this group
-            if other.count.v > 0:  # If there is a queue of the other group, give the control to them
-                state.v = other.rule
-                other.cvar.notify_all()  # Wake up all people in the other queue
-            else:
-                state.v = States.NEUTRAL
-        # If the current group currently controls the field, but the queue for the other group becomes larger
-        # Change to Transition state in favor of the other group
-        if state.v == me.rule and other.queue.v > me.queue.v:
+        me.queue_counter.v -= 1
+
+        if state.v == me.rule and other.queue_counter.v > me.queue_counter.v:
             state.v = other.transition
+
+        if state.v == other.transition and me.queue_counter.v == 0:
+            state.v = other.rule
+            if other.queue_counter.v > 0:
+                other.queue_cv.notify_all()
+            if me.buffer_counter.v > 0:
+                me.buffer_cv.notify_all()
+
+        if state.v == me.rule and me.queue_counter.v == 0:
+            state.v = States.NEUTRAL
 
         mutex.signal()
 
 
 class States:
-    NEUTRAL = 'neutral'
-    HEATHENS_RULE = 'heathens rule'
-    PRUDES_RULE = 'prudes rule'
-    HEATHENS_TRANSITION = 'transition to heathens'
-    PRUDES_TRANSITION = 'transition to prudes'
+    NEUTRAL = "neutral"
+    HEATHENS_RULE = "heathens rule"
+    PRUDES_RULE = "prudes rule"
+    HEATHENS_TRANSITION = "transitioning to heathens"
+    PRUDES_TRANSITION = "transitioning to prudes"
 
 
-state = MyString(States.NEUTRAL, "state")
-mutex = MyMutex("mutex")
-heathen_queue = MyInt(0, "heathen count")
-heathen_count = MyInt(0, "heathen in field")
-prude_queue = MyInt(0, "prude count")
-prude_count = MyInt(0, "prude in field")
-
-heathen_cvar = MyConditionVariable(mutex, "heathen cond. var")
-prude_cvar = MyConditionVariable(mutex, "prude cond. var")
-
-
-class Person:
-    def __init__(self, queue, count, cvar, rule, transition):
-        self.queue = queue
-        self.count = count
-        self.cvar = cvar
+class Person(object):
+    def __init__(self, buffer_counter, queue_counter, buffer_cv, queue_cv, rule, transition):
+        self.buffer_counter = buffer_counter
+        self.queue_counter = queue_counter
+        self.buffer_cv = buffer_cv
+        self.queue_cv = queue_cv
         self.rule = rule
         self.transition = transition
 
 
-def setup():
-    heathen = Person(heathen_queue, heathen_count, heathen_cvar, States.HEATHENS_RULE, States.HEATHENS_TRANSITION)
-    prude = Person(prude_queue, prude_count, prude_cvar, States.PRUDES_RULE, States.PRUDES_TRANSITION)
+mutex = MyMutex("mutex")
 
+heathens_buffer_cv = MyConditionVariable(mutex, "heathens_buffer")
+heathens_queue_cv = MyConditionVariable(mutex, "heathens_queue")
+
+prudes_buffer_cv = MyConditionVariable(mutex, "prudes_buffer")
+prudes_queue_cv = MyConditionVariable(mutex, "prudes_queue")
+
+heathens_in_buffer = MyInt(0, "heathens_in_buffer")
+prudes_in_buffer = MyInt(0, "prudes_in_buffer")
+
+heathens_in_queue = MyInt(0, "heathens_in_queue")
+prudes_in_queue = MyInt(0, "prudes_in_queue")
+
+state = MyString(States.NEUTRAL, "state")
+
+
+def setup():
+    prude = Person(prudes_in_buffer, prudes_in_queue, prudes_buffer_cv, prudes_queue_cv, States.PRUDES_RULE,
+                   States.PRUDES_TRANSITION)
+    heathen = Person(heathens_in_buffer, heathens_in_queue, heathens_buffer_cv, heathens_queue_cv, States.HEATHENS_RULE,
+                     States.HEATHENS_TRANSITION)
     for i in range(5):
-        subscribe_thread(lambda: thread_person(heathen, prude))
-        subscribe_thread(lambda: thread_person(prude, heathen))
+        subscribe_thread(lambda: person_thread(heathen, prude))
+        subscribe_thread(lambda: person_thread(prude, heathen))
