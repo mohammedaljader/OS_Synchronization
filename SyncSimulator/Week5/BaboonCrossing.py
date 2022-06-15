@@ -43,7 +43,6 @@ class States:
     Empty = "empty"
     South = "South"
     North = "North"
-    Queued = "Queued"
 
 
 class Baboon:
