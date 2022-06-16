@@ -8,7 +8,7 @@ import sys
 # dut_dir = "./Week2/"
 # dut_dir = "./Week3/"
 # dut_dir = "Week4/"
-dut_dir = "Week5/"
+dut_dir = "./Week5/"
 # dut_dir = "./TestSolutions/"
 # dut_dir = "./BookSolution/"
 
@@ -31,5 +31,6 @@ if __name__ == '__main__':
     dut = importlib.import_module(myDut)
     dut.setup()
     env.GuiCreate(pathlib.Path(dut_dir, myDut + ".py"))
+    # env.GuiCreate(pathlib.Path(myDut + ".py"))
 
     env.GuiMainloop()
