@@ -1,28 +1,3 @@
-# SantaClaus
-
-# -there are 9 reindeer threads
-#
-# -there are n elf threads
-#
-# -santa needs to help _at least_ 3 elves, can be more
-#
-# -reindeer do **not** have priority
-#
-# -the elves `getHelp()` must be executed in conjunction with santa's `helpElves()`
-#
-# -solution must work with **any** number of elves
-#
-#
-# helping the elves: after the third elf arrives, a semaphore must be switched allowing santa to go to the help
-# section, when there, santa locks the help section for the elves and calls help with all elves that were able to
-# queue in in-time
-#
-# hitching the reindeer: after all 9 reindeer arrive, they signal santa, who will in turn release their barrier,
-# allowing them to enter the critical section. They should then invoke `getHitched()` after santa has invoked
-# `prepareSleigh()`
-#
-# the santa semaphore indicates that either the reindeer or the elves can be helped.
-# Santa can only help either the elves or the reindeer in one iteration of the loop
 from Environment import *
 
 elves = MyInt(0, "elves")
@@ -37,12 +12,12 @@ def Santa():
     while True:
         santaSem.wait()
         mutex.wait()
-        if reindeer.v >= 9:
+        if elves.v == 3:
+            print("helpElves")
+        elif reindeer.v >= 9:
             print("prepareSleigh")
             reindeerSem.signal(9)
             reindeer.v -= 9
-        else:
-            print("helpElves")
 
         mutex.signal()
 
@@ -79,5 +54,7 @@ def Elves():
 
 def setup():
     subscribe_thread(Santa)
-    subscribe_thread(Reindeer)
-    subscribe_thread(Elves)
+    for i in range(8):
+        subscribe_thread(Reindeer)
+    for i in range(8):
+        subscribe_thread(Elves)

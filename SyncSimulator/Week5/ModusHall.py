@@ -5,23 +5,23 @@ def person_thread(me, other):
     while True:
         mutex.wait()
 
-        me.turnCounter.v += 1
+        me.queueCounter.v += 1
 
         while state.v == other.transition:
-            me.turn_cv.wait()
+            me.queue_cv.wait()
 
-        me.turnCounter.v -= 1
+        me.queueCounter.v -= 1
 
-        me.queueCounter.v += 1
+        me.counter.v += 1
 
         if state.v == States.NEUTRAL:
             state.v = me.rule
 
-        elif state.v == other.rule and me.queueCounter.v > other.queueCounter.v:
+        elif state.v == other.rule and me.counter.v > other.counter.v:
             state.v = me.transition
 
         while state.v == other.rule or state.v == me.transition:
-            me.queue_cv.wait()
+            me.cv.wait()
 
         mutex.signal()
 
@@ -29,19 +29,19 @@ def person_thread(me, other):
 
         mutex.wait()
 
-        me.queueCounter.v -= 1
+        me.counter.v -= 1
 
-        if state.v == me.rule and other.queueCounter.v > me.queueCounter.v:
+        if state.v == me.rule and other.counter.v > me.counter.v:
             state.v = other.transition
 
-        if state.v == other.transition and me.queueCounter.v == 0:
+        if state.v == other.transition and me.counter.v == 0:
             state.v = other.rule
-            if other.queueCounter.v > 0:
-                other.queue_cv.notify_all()
-            if me.turnCounter.v > 0:
-                me.turn_cv.notify_all()
+            if other.counter.v > 0:
+                other.cv.notify_all()
+            if me.queueCounter.v > 0:
+                me.queue_cv.notify_all()
 
-        if state.v == me.rule and me.queueCounter.v == 0:
+        if state.v == me.rule and me.counter.v == 0:
             state.v = States.NEUTRAL
 
         mutex.signal()
@@ -56,39 +56,41 @@ class States:
 
 
 class Person(object):
-    def __init__(self, turnCounter, queueCounter, buffer_cv, queue_cv, rule, transition, name):
-        self.turnCounter = turnCounter
+    def __init__(self, queueCounter, counter, queue_cv, cv, rule, transition, name):
         self.queueCounter = queueCounter
-        self.turn_cv = buffer_cv
+        self.counter = counter
         self.queue_cv = queue_cv
+        self.cv = cv
         self.rule = rule
         self.transition = transition
         self.name = name
 
 
+NR_OF_PRUDES = 6
+NR_OF_HEATHENS = 9
 mutex = MyMutex("mutex")
 
-heathensTurn_cv = MyConditionVariable(mutex, "heathensTurn_cv")
 heathensQueue_cv = MyConditionVariable(mutex, "heathensQueue_cv")
+heathens_cv = MyConditionVariable(mutex, "heathens_cv")
 
-prudesTurn_cv = MyConditionVariable(mutex, "prudesTurn_cv")
 prudesQueue_cv = MyConditionVariable(mutex, "prudesQueue_cv")
-
-heathensTurn = MyInt(0, "heathensTurn")
-prudesTurn = MyInt(0, "prudesTurn")
+prudes_cv = MyConditionVariable(mutex, "prudes_cv")
 
 heathensQueue = MyInt(0, "heathensQueue")
 prudesQueue = MyInt(0, "prudesQueue")
+
+heathensCounter = MyInt(0, "heathensCounter")
+prudesCounter = MyInt(0, "prudesCounter")
 
 state = MyString(States.NEUTRAL, "state")
 
 
 def setup():
-    prude = Person(prudesTurn, prudesQueue, prudesTurn_cv, prudesQueue_cv, States.PRUDES_RULE,
+    prude = Person(prudesQueue, prudesCounter, prudesQueue_cv, prudes_cv, States.PRUDES_RULE,
                    States.PRUDES_TRANSITION, "prude")
-    heathen = Person(heathensTurn, heathensQueue, heathensTurn_cv, heathensQueue_cv, States.HEATHENS_RULE,
+    heathen = Person(heathensQueue, heathensCounter, heathensQueue_cv, heathens_cv, States.HEATHENS_RULE,
                      States.HEATHENS_TRANSITION, "heathen")
-    for i in range(5):
+    for i in range(NR_OF_HEATHENS):
         subscribe_thread(lambda: person_thread(heathen, prude))
-    for i in range(5):
+    for i in range(NR_OF_PRUDES):
         subscribe_thread(lambda: person_thread(prude, heathen))

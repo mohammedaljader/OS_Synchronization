@@ -26,13 +26,11 @@ def threadBaboon(me, other):
 
         if me.count.v == 0:
             if active_state.v == States.Queued:
-                print("yes")
                 active_state.v = other.activeState
                 other.sem.signal(other.candidates.v)
                 other.count.v += other.candidates.v
                 other.candidates.v -= other.candidates.v
             else:
-                print("yes")
                 active_state.v = States.Empty
 
         mutex.signal()
@@ -54,6 +52,8 @@ class Baboon:
         self.name = name
 
 
+NR_OF_SOUTH_BABOONS = 7
+NR_OF_NORTH_BABOONS = 9
 active_state = MyString(States.Empty, "state")
 mutex = MyMutex("mutex")
 capacity = MySemaphore(5, "capacity")
@@ -71,7 +71,7 @@ south = Baboon(southCount, southCandidates, southSem, States.South, "South")
 
 
 def setup():
-    for i in range(15):
+    for i in range(NR_OF_NORTH_BABOONS):
         subscribe_thread(lambda: threadBaboon(north, south))
-    for i in range(7):
+    for i in range(NR_OF_SOUTH_BABOONS):
         subscribe_thread(lambda: threadBaboon(south, north))
